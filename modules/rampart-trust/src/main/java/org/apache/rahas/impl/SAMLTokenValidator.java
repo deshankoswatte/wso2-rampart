@@ -26,17 +26,15 @@ import org.apache.ws.security.WSSecurityException;
 import org.apache.ws.security.components.crypto.Crypto;
 import org.apache.ws.security.components.crypto.CryptoFactory;
 import org.apache.ws.security.saml.SAML2Util;
-import org.opensaml.Configuration;
-import org.opensaml.DefaultBootstrap;
-import org.opensaml.SAMLAssertion;
-import org.opensaml.SAMLException;
-import org.opensaml.saml2.core.Assertion;
-import org.opensaml.xml.ConfigurationException;
-import org.opensaml.xml.io.Unmarshaller;
-import org.opensaml.xml.io.UnmarshallerFactory;
-import org.opensaml.xml.io.UnmarshallingException;
+import org.opensaml.core.config.InitializationException;
+import org.opensaml.core.xml.config.XMLObjectProviderRegistrySupport;
+import org.opensaml.saml.saml2.core.Assertion;
+import org.opensaml.core.xml.io.Unmarshaller;
+import org.opensaml.core.xml.io.UnmarshallerFactory;
+import org.opensaml.core.xml.io.UnmarshallingException;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
+import org.wso2.carbon.identity.saml.common.util.SAMLInitializer;
 import org.xml.sax.SAXException;
 
 /**
@@ -52,8 +50,8 @@ public class SAMLTokenValidator implements TokenValidator {
     
     static {
         try {
-            DefaultBootstrap.bootstrap();
-        } catch (ConfigurationException e) {
+            SAMLInitializer.doBootstrap();
+        } catch (InitializationException e) {
             log.error("SAMLTokenValidatorBootstrapError", e);
             throw new RuntimeException(e);
         }
@@ -134,7 +132,7 @@ public class SAMLTokenValidator implements TokenValidator {
     private boolean isValid(Token token, PublicKey issuerPBKey, Crypto crypto) {
         // extract SAMLAssertion object from token
         OMElement assertionOMElement = token.getToken();
-        SAMLAssertion samlAssertion = null;
+//        SAMLAssertion samlAssertion = null;
 
         if (RahasConstants.TOK_TYPE_SAML_20_NS.equals(assertionOMElement.getQName().getNamespaceURI())) {
             Assertion assertion = null;
@@ -152,22 +150,25 @@ public class SAMLTokenValidator implements TokenValidator {
             // if there was no exception, then the token is valid
             return true;
         } else {
-            try {
-                samlAssertion = new SAMLAssertion((Element) assertionOMElement);
-
-                log.info("Verifying token validity...");
-
-                // check if the token has been signed by the issuer.
-                samlAssertion.verify(issuerPBKey);
-
-            } catch (SAMLException e) {
-                log.error("Could not verify signature", e);
-                return false;
-            }
-
-            // if there was no exception, then the token is valid
-            return true;
+            return false;
         }
+//        else {
+//            try {
+//                samlAssertion = new SAMLAssertion((Element) assertionOMElement);
+//
+//                log.info("Verifying token validity...");
+//
+//                // check if the token has been signed by the issuer.
+//                samlAssertion.verify(issuerPBKey);
+//
+//            } catch (SAMLException e) {
+//                log.error("Could not verify signature", e);
+//                return false;
+//            }
+//
+//            // if there was no exception, then the token is valid
+//            return true;
+//        }
     }
     
     private SAMLTokenIssuerConfig getConfig(MessageContext inMsgCtx) {
@@ -217,8 +218,8 @@ public class SAMLTokenValidator implements TokenValidator {
     
     /**
      * Create crypto object using SAMLTokenIssuer config
-     * @param MessageContext inMsgCtx
-     * @param SAMLTokenIssuerConfig  config
+     * @param inMsgCtx
+     * @param config
      * @return Crypto
      */
     private Crypto getCrypto(MessageContext inMsgCtx, SAMLTokenIssuerConfig config) {
@@ -236,8 +237,8 @@ public class SAMLTokenValidator implements TokenValidator {
     /**
      * Retreive the Issuer's PK
      * 
-     * @param SAMLTokenIssuerConfig config
-     * @param Crypto crypto
+     * @param config
+     * @param crypto
      * @return
      */
     private PublicKey getIssuerPublicKey(SAMLTokenIssuerConfig config, Crypto crypto) {
@@ -262,7 +263,7 @@ public class SAMLTokenValidator implements TokenValidator {
             Document document = docBuilder.parse(new ByteArrayInputStream(elem.trim().getBytes()));
             Element element = document.getDocumentElement();
             
-            UnmarshallerFactory unmarshallerFactory = Configuration.getUnmarshallerFactory();
+            UnmarshallerFactory unmarshallerFactory = XMLObjectProviderRegistrySupport.getUnmarshallerFactory();
             Unmarshaller unmarshaller = unmarshallerFactory.getUnmarshaller(element);
             samlAssertion = (Assertion) unmarshaller.unmarshall(element);
         } catch (UnmarshallingException e) {

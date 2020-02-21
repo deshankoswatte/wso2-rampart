@@ -1,7 +1,5 @@
 package org.apache.rahas.impl.util;
 
-import org.opensaml.SAMLException;
-
 /**
  * SAMLCallback Handler enables you to add data to the
  * to the SAMLAssertion.
@@ -21,8 +19,7 @@ public interface SAMLCallbackHandler {
 	 * 		
 	 * }
 	 * @param callback
-	 * @throws SAMLException
 	 */
-	public void handle(SAMLCallback callback) throws SAMLException;
+	public void handle(SAMLCallback callback) ;
 
 }

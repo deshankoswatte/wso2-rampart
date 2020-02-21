@@ -19,13 +19,11 @@ package org.apache.rahas;
 import org.apache.axiom.om.OMAbstractFactory;
 import org.apache.axiom.om.OMElement;
 import org.apache.axiom.om.OMFactory;
-import org.apache.rahas.PWCallback;
 import org.apache.neethi.Policy;
 import org.apache.rampart.handler.config.InflowConfiguration;
 import org.apache.rampart.handler.config.OutflowConfiguration;
 import org.apache.ws.secpolicy.SP11Constants;
-import org.apache.ws.secpolicy.SPConstants;
-import org.opensaml.XML;
+import org.opensaml.saml.common.xml.SAMLConstants;
 
 import javax.xml.namespace.QName;
 
@@ -94,7 +92,7 @@ public class RahasSAMLTokenCertForHoKTest extends TestClient {
                                                              RahasConstants.IssuanceBindingLocalNames.
                                                                      REQUESTED_SECURITY_TOKEN));
         assertNotNull("RequestedSecurityToken missing", rst);
-        OMElement elem = rst.getFirstChildWithName(new QName(XML.SAML_NS, "Assertion"));
+        OMElement elem = rst.getFirstChildWithName(new QName(SAMLConstants.SAML1_NS, "Assertion"));
         assertNotNull("Missing SAML Assertoin", elem);
     }
 

@@ -9,8 +9,7 @@ import org.apache.neethi.Policy;
 import org.apache.rampart.handler.config.InflowConfiguration;
 import org.apache.rampart.handler.config.OutflowConfiguration;
 import org.apache.ws.secpolicy.SP11Constants;
-import org.apache.ws.secpolicy.SPConstants;
-import org.opensaml.XML;
+import org.opensaml.saml.common.xml.SAMLConstants;
 
 public class RahasSAMLTokenAttributeTest  extends TestClient{
     
@@ -67,7 +66,7 @@ public class RahasSAMLTokenAttributeTest  extends TestClient{
                                                              RahasConstants.IssuanceBindingLocalNames.
                                                                      REQUESTED_SECURITY_TOKEN));
         assertNotNull("RequestedSecurityToken missing", rst);
-        OMElement elem = rst.getFirstChildWithName(new QName(XML.SAML_NS, "Assertion"));
+        OMElement elem = rst.getFirstChildWithName(new QName(SAMLConstants.SAML1_NS, "Assertion"));
         assertNotNull("Missing SAML Assertoin", elem);
     }
 
