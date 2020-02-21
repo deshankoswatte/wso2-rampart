@@ -29,7 +29,7 @@ public interface TokenRenewer {
      * @return Response SOAPEnveloper
      * @throws TrustException
      */
-    public SOAPEnvelope renew(RahasData data) throws TrustException;
+    SOAPEnvelope renew(RahasData data) throws TrustException;
 
     /**
      * Set the configuration file of this TokenRenewer.
@@ -39,7 +39,7 @@ public interface TokenRenewer {
      * 
      * @param configFile
      */
-    public void setConfigurationFile(String configFile);
+    void setConfigurationFile(String configFile);
     
     /**
      * Set the configuration element of TokenRenewer.
@@ -50,7 +50,7 @@ public interface TokenRenewer {
      * @param configElement
      *                <code>OMElement</code> representing the configuration
      */
-    public void setConfigurationElement(OMElement configElement);
+    void setConfigurationElement(OMElement configElement);
 
     /**
      * Set the name of the configuration parameter.
@@ -62,5 +62,5 @@ public interface TokenRenewer {
      * @see org.apache.axis2.description.Parameter
      * @param configParamName
      */
-    public void setConfigurationParamName(String configParamName);
+    void setConfigurationParamName(String configParamName);
 }

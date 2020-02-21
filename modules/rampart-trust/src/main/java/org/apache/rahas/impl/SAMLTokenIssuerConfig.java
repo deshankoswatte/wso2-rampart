@@ -39,9 +39,9 @@ import java.util.Map;
 import java.util.Properties;
 
 /**
- * Configuration manager for the <code>SAMLTokenIssuer</code>
+ * Configuration manager for the <code>SAML2TokenIssuer</code>
  *
- * @see SAMLTokenIssuer
+ * @see SAML2TokenIssuer
  */
 public class SAMLTokenIssuerConfig extends AbstractIssuerConfig {
     

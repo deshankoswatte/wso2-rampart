@@ -34,10 +34,6 @@
 					<tokenType>http://schemas.xmlsoap.org/ws/2005/02/sc/sct</tokenType>
 					<tokenType>http://docs.oasis-open.org/ws-sx/ws-secureconversation/200512/sct</tokenType>
 				</issuer>
-				<issuer class="org.apache.rahas.impl.SAMLTokenIssuer">
-					<configuration type="parameter">saml-issuer-config</configuration>
-					<tokenType>http://docs.oasis-open.org/wss/oasis-wss-saml-token-profile-1.1#SAMLV1.1</tokenType>
-				</issuer>
                 <issuer class="org.apache.rahas.impl.SAML2TokenIssuer">
                         <configuration type="parameter">saml-issuer-config</configuration>
                         <tokenType>http://docs.oasis-open.org/wss/oasis-wss-saml-token-profile-1.1#SAMLV2.0</tokenType>
@@ -54,10 +50,6 @@
 				</canceler>
 				
 				<!-- Renewers. You may have many renewers -->
-                <renewer class="org.apache.rahas.impl.SAMLTokenRenewer" default="true">
-                     <configuration type="parameter">saml-issuer-config</configuration>
-                     <tokenType>http://docs.oasis-open.org/wss/oasis-wss-saml-token-profile-1.1#SAMLV1.1</tokenType>
-                </renewer>
                 <renewer class="org.apache.rahas.impl.SAML2TokenRenewer">
                     <configuration type="parameter">saml-issuer-config</configuration>
                     <tokenType>http://docs.oasis-open.org/wss/oasis-wss-saml-token-profile-1.1#SAMLV2.0</tokenType>

@@ -4,10 +4,6 @@
 		<configuration type="file">sct-issuer-config.xml</configuration>
 		<tokenType>http://schemas.xmlsoap.org/ws/2005/02/sc/sct</tokenType>
 	</issuer>
-	<issuer class="org.apache.rahas.impl.SAMLTokenIssuer">
-		<configuration type="file">META-INF/saml-issuer-config.xml</configuration>
-		<tokenType>http://docs.oasis-open.org/wss/oasis-wss-saml-token-profile-1.1#SAMLV1.1</tokenType>
-	</issuer>
     <issuer class="org.apache.rahas.impl.SAML2TokenIssuer">
 		<configuration type="file">META-INF/saml-issuer-config.xml</configuration>
 		<tokenType>http://docs.oasis-open.org/wss/oasis-wss-saml-token-profile-1.1#SAMLV2.0</tokenType>

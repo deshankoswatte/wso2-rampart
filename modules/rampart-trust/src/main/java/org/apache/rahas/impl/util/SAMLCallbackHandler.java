@@ -20,6 +20,5 @@ public interface SAMLCallbackHandler {
 	 * }
 	 * @param callback
 	 */
-	public void handle(SAMLCallback callback) ;
-
+	 void handle(SAMLCallback callback) ;
 }

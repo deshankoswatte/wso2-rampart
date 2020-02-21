@@ -22,10 +22,10 @@ import org.apache.rahas.TokenStorage;
 import org.apache.rahas.TokenValidator;
 import org.apache.rahas.TrustException;
 import org.apache.rahas.TrustUtil;
+import org.apache.rahas.impl.util.SAML2Utils;
 import org.apache.ws.security.WSSecurityException;
 import org.apache.ws.security.components.crypto.Crypto;
 import org.apache.ws.security.components.crypto.CryptoFactory;
-import org.apache.ws.security.saml.SAML2Util;
 import org.opensaml.core.config.InitializationException;
 import org.opensaml.core.xml.config.XMLObjectProviderRegistrySupport;
 import org.opensaml.saml.saml2.core.Assertion;
@@ -141,7 +141,7 @@ public class SAMLTokenValidator implements TokenValidator {
                 
                 if (assertion.getSignature() != null) {
                     // validate the signature of the SAML token
-                    SAML2Util.validateSignature(assertion, crypto);
+                    SAML2Utils.validateSignature(assertion, crypto);
                 }
             } catch (WSSecurityException e) {
                 log.error("Could not verify signature", e);

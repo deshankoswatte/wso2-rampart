@@ -16,31 +16,31 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-package org.apache.rahas.impl.util;
-
-import org.opensaml.XML.ParserPool;
-
-import javax.xml.parsers.DocumentBuilderFactory;
-import java.lang.reflect.Field;
-
-/**
- * Custom OpenSAML 1.x {@link ParserPool} implementation that uses a DOM aware Axiom implementation
- * instead of requesting a {@link DocumentBuilderFactory} using JAXP.
- */
-public class AxiomParserPool extends ParserPool {
-    public AxiomParserPool() {
-        DocumentBuilderFactory dbf = new DOOMDocumentBuilderFactory();
-
-        // Unfortunately, ParserPool doesn't allow to set the DocumentBuilderFactory, so that we
-        // have to use reflection here.
-        try {
-            Field dbfField = ParserPool.class.getDeclaredField("dbf");
-            dbfField.setAccessible(true);
-            dbfField.set(this, dbf);
-        } catch (IllegalAccessException ex) {
-            throw new IllegalAccessError(ex.getMessage());
-        } catch (NoSuchFieldException ex) {
-            throw new NoSuchFieldError(ex.getMessage());
-        }
-    }
-}
+//package org.apache.rahas.impl.util;
+//
+//import org.opensaml.XML.ParserPool;
+//
+//import javax.xml.parsers.DocumentBuilderFactory;
+//import java.lang.reflect.Field;
+//
+///**
+// * Custom OpenSAML 1.x {@link ParserPool} implementation that uses a DOM aware Axiom implementation
+// * instead of requesting a {@link DocumentBuilderFactory} using JAXP.
+// */
+//public class AxiomParserPool extends ParserPool {
+//    public AxiomParserPool() {
+//        DocumentBuilderFactory dbf = new DOOMDocumentBuilderFactory();
+//
+//        // Unfortunately, ParserPool doesn't allow to set the DocumentBuilderFactory, so that we
+//        // have to use reflection here.
+//        try {
+//            Field dbfField = ParserPool.class.getDeclaredField("dbf");
+//            dbfField.setAccessible(true);
+//            dbfField.set(this, dbf);
+//        } catch (IllegalAccessException ex) {
+//            throw new IllegalAccessError(ex.getMessage());
+//        } catch (NoSuchFieldException ex) {
+//            throw new NoSuchFieldError(ex.getMessage());
+//        }
+//    }
+//}

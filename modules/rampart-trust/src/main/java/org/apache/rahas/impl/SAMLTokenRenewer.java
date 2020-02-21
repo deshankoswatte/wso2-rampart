@@ -1,28 +1,18 @@
 package org.apache.rahas.impl;
 
 import org.apache.axiom.om.OMElement;
-import org.apache.axiom.om.OMNode;
-import org.apache.axiom.om.impl.dom.jaxp.DocumentBuilderFactoryImpl;
 import org.apache.axiom.soap.SOAPEnvelope;
 import org.apache.axis2.context.MessageContext;
 import org.apache.axis2.description.Parameter;
-import org.apache.rahas.*;
-import org.apache.rahas.impl.util.SAMLUtils;
+import org.apache.rahas.RahasConstants;
+import org.apache.rahas.RahasData;
+import org.apache.rahas.TokenRenewer;
+import org.apache.rahas.TrustException;
+import org.apache.rahas.TrustUtil;
 import org.apache.ws.security.components.crypto.Crypto;
 import org.apache.ws.security.components.crypto.CryptoFactory;
-import org.apache.ws.security.util.XmlSchemaDateFormat;
-import org.apache.xml.security.signature.XMLSignature;
-import org.opensaml.SAMLAssertion;
-import org.opensaml.SAMLException;
-import org.w3c.dom.Element;
-import org.w3c.dom.Node;
 
-import java.security.cert.X509Certificate;
-import java.text.DateFormat;
-import java.util.Arrays;
-import java.util.Date;
-
-public class SAMLTokenRenewer implements TokenRenewer {
+public abstract class SAMLTokenRenewer implements TokenRenewer {
     
     private String configParamName;
 
@@ -30,84 +20,7 @@ public class SAMLTokenRenewer implements TokenRenewer {
 
     private String configFile;
 
-    public SOAPEnvelope renew(RahasData data) throws TrustException {
-        
-        // retrieve the message context
-        MessageContext inMsgCtx = data.getInMessageContext();
-        // retrieve the list of tokens from the message context
-        TokenStorage tkStorage = TrustUtil.getTokenStore(inMsgCtx);
-        SAMLTokenIssuerConfig config = setConfig(inMsgCtx);
-
-        try {
-            if (!TrustUtil.isDoomParserPoolUsed()) {
-                // Set the DOM impl to DOOM
-                DocumentBuilderFactoryImpl.setDOOMRequired(true);
-            }
-            // Create envelope
-            SOAPEnvelope env = TrustUtil.createSOAPEnvelope(inMsgCtx
-                    .getEnvelope().getNamespace().getNamespaceURI());
-            // Create RSTR element, with respective version. Here the env is passing from the reference
-            OMElement rstrElem = buildResponse(inMsgCtx, data, env, RahasConstants.TOK_TYPE_SAML_10);
-            int wstVersion = data.getVersion();
-            // Creation and expiration times
-            Date creationTime = new Date();
-            Date expirationTime = new Date();
-            expirationTime.setTime(creationTime.getTime() + config.ttl);
-            // Use GMT time in milliseconds
-            DateFormat zulu = new XmlSchemaDateFormat();
-            // Add the Lifetime element
-            TrustUtil.createLifetimeElement(wstVersion, rstrElem, zulu
-                    .format(creationTime), zulu.format(expirationTime));
-            // Obtain the token and create the samlAssertion
-            Token tk = tkStorage.getToken(data.getTokenId());
-            OMElement assertionOMElement = tk.getToken();
-            SAMLAssertion samlAssertion = null;
-
-            try {
-                samlAssertion = new SAMLAssertion((Element) assertionOMElement);
-                samlAssertion.unsign();
-                samlAssertion.setNotBefore(creationTime);
-                samlAssertion.setNotOnOrAfter(expirationTime);
-                Crypto crypto = getCrypto(inMsgCtx, config);
-                // sign the assertion()
-                samlAssertion = signAssertion(crypto,samlAssertion,config);
-                // Create the RequestedSecurityToken element and add the SAML token
-                // to it
-                OMElement reqSecTokenElem = TrustUtil
-                        .createRequestedSecurityTokenElement(wstVersion, rstrElem);
-                Node tempNode = samlAssertion.toDOM();
-                reqSecTokenElem.addChild((OMNode) ((Element) rstrElem)
-                        .getOwnerDocument().importNode(tempNode, true));
-            } catch (SAMLException e) {
-                throw new TrustException("Cannot Create SAML Assertion",e);
-            } catch (Exception e) {
-                throw new TrustException("Cannot Create SAML Assertion",e);
-            }
-            return env;
-        } finally {
-            if (!TrustUtil.isDoomParserPoolUsed()) {
-                DocumentBuilderFactoryImpl.setDOOMRequired(false);
-            }
-        }
-    }
-
-    /**
-     * sign the SAML 1.1 assertion.
-     * @param crypto
-     * @param samlAssertion
-     * @param config
-     * @return
-     * @throws Exception
-     */
-    protected SAMLAssertion signAssertion(Crypto crypto, SAMLAssertion samlAssertion, SAMLTokenIssuerConfig config ) throws Exception {
-        X509Certificate[] issuerCerts = crypto
-                .getCertificates(config.issuerKeyAlias);
-        String sigAlgo = SAMLUtils.getSignatureAlgorithm(config, issuerCerts);
-        java.security.Key issuerPK = crypto.getPrivateKey(
-                config.issuerKeyAlias, config.issuerKeyPassword);
-        samlAssertion.sign(sigAlgo, issuerPK, Arrays.asList(issuerCerts));
-        return samlAssertion;
-    }
+    public abstract SOAPEnvelope renew(RahasData data) throws TrustException;
 
     /**
      * create the crypto from configuration. Used in SAML2tokenRenewer as well
@@ -118,12 +31,12 @@ public class SAMLTokenRenewer implements TokenRenewer {
     protected Crypto getCrypto(MessageContext inMsgCtx, SAMLTokenIssuerConfig config){
         Crypto crypto;
         if (config.cryptoElement != null) {
-            // crypto props defined as elements
+            // Crypto props defined as elements.
             crypto = CryptoFactory.getInstance(TrustUtil
                     .toProperties(config.cryptoElement), inMsgCtx
                     .getAxisService().getClassLoader());
         } else {
-            // crypto props defined in a properties file
+            // Crypto props defined in a properties file.
             crypto = CryptoFactory.getInstance(config.cryptoPropertiesFile,
                     inMsgCtx.getAxisService().getClassLoader());
         }
@@ -164,7 +77,7 @@ public class SAMLTokenRenewer implements TokenRenewer {
         if(config.isTokenStoreDisabled()){
             throw new TrustException("errorTokenStoreDisabled");
         }
-        //initialize and set token persister and config in configuration context.
+        // Initialize and set token persister and config in configuration context.
         if (TokenIssuerUtil.isPersisterConfigured(config)) {
             TokenIssuerUtil.manageTokenPersistenceSettings(config, inMsgCtx);
         }

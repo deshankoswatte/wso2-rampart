@@ -24,7 +24,8 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.neethi.Assertion;
 import org.apache.neethi.Policy;
-import org.apache.rahas.impl.util.AxiomParserPool;
+import org.opensaml.core.config.InitializationException;
+import org.wso2.carbon.identity.saml.common.util.SAMLInitializer;
 
 
 public class Rahas implements Module {
@@ -36,15 +37,12 @@ public class Rahas implements Module {
 
     public void init(ConfigurationContext configurationContext, AxisModule axisModule)
             throws AxisFault {
-        if (TrustUtil.isDoomParserPoolUsed()) {
-            // Set up OpenSAML to use a DOM aware Axiom implementation
-            XML.parserPool = new AxiomParserPool();
+
             try {
-                DefaultBootstrap.bootstrap();
-            } catch (ConfigurationException ex) {
+                SAMLInitializer.doBootstrap();
+            } catch (InitializationException ex) {
                 throw new AxisFault("Failed to bootstrap OpenSAML", ex);
             }
-        }
     }
 
     public void engageNotify(AxisDescription axisDescription) throws AxisFault {

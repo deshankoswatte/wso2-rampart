@@ -14,9 +14,9 @@
  * limitations under the License.
  */
 
-
 package org.apache.rahas.impl.util;
 
+import net.shibboleth.utilities.java.support.codec.Base64Support;
 import org.apache.axiom.om.impl.dom.jaxp.DocumentBuilderFactoryImpl;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -48,6 +48,12 @@ import org.opensaml.saml.saml2.core.Subject;
 import org.opensaml.saml.saml2.core.SubjectConfirmation;
 import org.opensaml.saml.saml2.core.SubjectConfirmationData;
 import org.opensaml.core.xml.XMLObject;
+import org.opensaml.security.credential.Credential;
+import org.opensaml.security.credential.CredentialContextSet;
+import org.opensaml.security.credential.UsageType;
+import org.opensaml.security.x509.X509Credential;
+import org.opensaml.xmlsec.signature.support.SignatureException;
+import org.opensaml.xmlsec.signature.support.SignatureValidator;
 import org.w3c.dom.*;
 import org.w3c.dom.bootstrap.DOMImplementationRegistry;
 import org.w3c.dom.ls.DOMImplementationLS;
@@ -56,6 +62,7 @@ import org.w3c.dom.ls.LSSerializer;
 import org.wso2.carbon.identity.saml.common.util.SAMLInitializer;
 import org.xml.sax.SAXException;
 
+import javax.crypto.SecretKey;
 import javax.security.auth.callback.Callback;
 import javax.security.auth.callback.CallbackHandler;
 import javax.xml.namespace.QName;
@@ -65,7 +72,12 @@ import javax.xml.parsers.ParserConfigurationException;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
-import java.security.cert.X509Certificate;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
+import java.security.PrivateKey;
+import java.security.PublicKey;
+import java.security.cert.*;
+import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Random;
@@ -368,6 +380,105 @@ public class SAML2Utils {
         }
 
         return String.valueOf(chars);
+    }
+
+    public static void validateSignature(Assertion assertion, Crypto crypto) throws WSSecurityException {
+        String alias = null;
+        List x509Data = assertion.getSignature().getKeyInfo().getX509Datas();
+        if (x509Data != null && x509Data.size() > 0) {
+            org.opensaml.xmlsec.signature.X509Data x509Cred = (org.opensaml.xmlsec.signature.X509Data)x509Data.get(0);
+            List x509Certs = x509Cred.getX509Certificates();
+            if (x509Certs != null && x509Certs.size() > 0) {
+                org.opensaml.xmlsec.signature.X509Certificate cert = (org.opensaml.xmlsec.signature.X509Certificate)x509Certs.get(0);
+
+                try {
+                    CertificateFactory cf = CertificateFactory.getInstance("X.509");
+                    X509Certificate x509Certificate = (X509Certificate)cf.generateCertificate(new ByteArrayInputStream(Base64Support.decode(cert.getValue())));
+                    alias = crypto.getAliasForX509CertThumb(calculateThumbPrint(x509Certificate));
+                    if (alias != null) {
+                        class X509CredentialImpl implements X509Credential {
+                            private PublicKey publicKey = null;
+
+                            public X509CredentialImpl(X509Certificate cert) {
+                                this.publicKey = cert.getPublicKey();
+                            }
+
+                            public X509Certificate getEntityCertificate() {
+                                return null;
+                            }
+
+                            public Collection<X509Certificate> getEntityCertificateChain() {
+                                return null;
+                            }
+
+                            public Collection<X509CRL> getCRLs() {
+                                return null;
+                            }
+
+                            public String getEntityId() {
+                                return null;
+                            }
+
+                            public UsageType getUsageType() {
+                                return null;
+                            }
+
+                            public Collection<String> getKeyNames() {
+                                return null;
+                            }
+
+                            public PublicKey getPublicKey() {
+                                return this.publicKey;
+                            }
+
+                            public PrivateKey getPrivateKey() {
+                                return null;
+                            }
+
+                            public SecretKey getSecretKey() {
+                                return null;
+                            }
+
+                            public CredentialContextSet getCredentialContextSet() {
+                                return null;
+                            }
+
+                            public Class<? extends Credential> getCredentialType() {
+                                return null;
+                            }
+                        }
+
+                        SignatureValidator.validate(assertion.getSignature(),new X509CredentialImpl(crypto.getCertificates(alias)[0]));
+                    } else {
+                        throw new WSSecurityException(0, "SAMLTokenUntrustedSignatureKey");
+                    }
+                } catch (CertificateException var10) {
+                    throw new WSSecurityException("SAMLTokenErrorGeneratingX509CertInstance", var10);
+                } catch (SignatureException var11) {
+                    throw new WSSecurityException(10, "SAMLTokenInvalidSignature");
+                }
+            } else {
+                throw new WSSecurityException(0, "SAMLTokenInvalidX509Data");
+            }
+        } else {
+            throw new WSSecurityException(0, "SAMLTokenInvalidX509Data");
+        }
+    }
+
+    private static byte[] calculateThumbPrint(X509Certificate x509Certificate) {
+        byte[] thumbPrintValue = new byte[0];
+
+        try {
+            MessageDigest md = MessageDigest.getInstance("SHA-1");
+            md.update(x509Certificate.getEncoded());
+            thumbPrintValue = md.digest();
+        } catch (NoSuchAlgorithmException var3) {
+            var3.printStackTrace();
+        } catch (CertificateEncodingException var4) {
+            var4.printStackTrace();
+        }
+
+        return thumbPrintValue;
     }
 
 }
