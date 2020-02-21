@@ -43,12 +43,12 @@
             <artifactId>axis2-kernel</artifactId>
         </dependency>
         <dependency>
-            <groupId>org.opensaml</groupId>
-            <artifactId>opensaml1</artifactId>
+            <groupId>org.wso2.orbit.org.opensaml</groupId>
+            <artifactId>opensaml</artifactId>
         </dependency>
         <dependency>
-            <groupId>org.opensaml</groupId>
-            <artifactId>opensaml</artifactId>
+            <groupId>org.wso2.carbon.identity.saml.common</groupId>
+            <artifactId>org.wso2.carbon.identity.saml.common.util</artifactId>
         </dependency>
         <dependency>
             <groupId>commons-lang</groupId>
@@ -179,17 +179,9 @@
                             org.apache.xml.security.keys.content.x509; version="${imp.pkg.version.xmlsec}",
                             org.apache.xml.security.utils; version="${imp.pkg.version.xmlsec}",
                             org.joda.time,
-                            org.opensaml,
-                            org.opensaml.common,
-                            org.opensaml.saml2.core,
-                            org.opensaml.saml2.core.impl,
-                            org.opensaml.xml,
-                            org.opensaml.xml.io,
-                            org.opensaml.xml.schema,
-                            org.opensaml.xml.schema.impl,
-                            org.opensaml.xml.security.credential,
-                            org.opensaml.xml.security.x509,
-                            org.opensaml.xml.signature,
+                            org.opensaml.*; version="${opensaml.orbit.version.range}",
+                            net.shibboleth.utilities.java.support.*; version="${opensaml.orbit.version.range}",
+                            org.wso2.carbon.identity.saml.common.util.*; version="${saml.common.util.version.range}",
                             org.w3c.dom,
                             org.w3c.dom.bootstrap,
                             org.w3c.dom.ls,

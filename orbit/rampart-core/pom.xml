@@ -140,12 +140,12 @@
             <artifactId>axis2-kernel</artifactId>
         </dependency>
         <dependency>
-            <groupId>org.opensaml</groupId>
-            <artifactId>opensaml1</artifactId>
+            <groupId>org.wso2.orbit.org.opensaml</groupId>
+            <artifactId>opensaml</artifactId>
         </dependency>
         <dependency>
-            <groupId>org.opensaml</groupId>
-            <artifactId>opensaml</artifactId>
+            <groupId>org.wso2.carbon.identity.saml.common</groupId>
+            <artifactId>org.wso2.carbon.identity.saml.common.util</artifactId>
         </dependency>
         <dependency>
             <groupId>commons-lang</groupId>
@@ -195,10 +195,10 @@
                             org.apache.ws.secpolicy; version="${imp.pkg.version.range.rampart}",
                             org.apache.ws.secpolicy.model; version="${imp.pkg.version.range.rampart}",
                             org.apache.xml.security.utils; version="${imp.pkg.version.xmlsec}",
-                            org.jaxen, org.joda.time,
-                            org.opensaml,
-                            org.opensaml.saml2.core,
-                            org.opensaml.xml,
+                            org.jaxen,
+                            org.joda.time,
+                            org.opensaml.*; version="${opensaml.orbit.version.range}",
+                            org.wso2.carbon.identity.saml.common.util.*; version="${saml.common.util.version.range}",
                             org.w3c.dom
                         </Import-Package>
                         <DynamicImport-Package>*</DynamicImport-Package>
