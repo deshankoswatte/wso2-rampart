@@ -23,10 +23,8 @@ import org.apache.rahas.RahasConstants;
 import org.apache.rahas.Token;
 import org.apache.rahas.TokenStorage;
 import org.apache.rahas.TrustException;
-import org.apache.rampart.policy.model.KerberosConfig;
 import org.apache.rampart.policy.model.RampartConfig;
-import org.apache.ws.security.WSParameterCallback;
-import org.apache.ws.security.WSPasswordCallback;
+import org.apache.wss4j.common.ext.WSPasswordCallback;
 import org.w3c.dom.Element;
 
 import javax.security.auth.callback.Callback;
@@ -60,7 +58,7 @@ public class TokenCallbackHandler implements CallbackHandler {
 
             if (callbacks[i] instanceof WSPasswordCallback) {
                 WSPasswordCallback pc = (WSPasswordCallback) callbacks[i];
-                String id = pc.getIdentifer();
+                String id = pc.getIdentifier();
 
                 if ((pc.getUsage() == WSPasswordCallback.SECURITY_CONTEXT_TOKEN || pc.getUsage() == WSPasswordCallback.CUSTOM_TOKEN)
                         && this.store != null) {
@@ -119,35 +117,6 @@ public class TokenCallbackHandler implements CallbackHandler {
                     }
                 }
 
-            } else if (callbacks[i] instanceof WSParameterCallback) {
-                WSParameterCallback para = (WSParameterCallback) callbacks[i];
-                if (para.getProperty() == WSParameterCallback.KDC_DES_AES_FACTOR) {
-                    if (config != null) {
-                        KerberosConfig krbConfig = config.getKerberosConfig();
-                        int factor = 0;
-                        String fac = null;
-                        if (krbConfig != null
-                                && (fac = krbConfig.getProp().getProperty(
-                                        KerberosConfig.KDC_DES_AES_FACTOR)) != null) {
-                            try {
-                                factor = Integer.parseInt(fac);
-                            } catch (Exception e) {
-                                factor = 0;
-                            }
-                        }
-                        para.setIntValue(factor);
-                    }
-                } else if (para.getProperty() == WSParameterCallback.SERVICE_PRINCIPLE_PASSWORD) {
-                    if (config != null) {
-                        KerberosConfig krbConfig = config.getKerberosConfig();
-                        String password = null;
-                        if (krbConfig != null
-                                && (password = krbConfig.getProp().getProperty(
-                                        KerberosConfig.SERVICE_PRINCIPLE_PASSWORD)) != null) {
-                            para.setStringValue(password);
-                        }
-                    }
-                }
             } else {
                 throw new UnsupportedCallbackException(callbacks[i], "Unrecognized Callback");
             }

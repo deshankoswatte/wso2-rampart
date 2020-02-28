@@ -39,10 +39,10 @@ import org.apache.rampart.util.Axis2Util;
 import org.apache.rampart.util.MessageOptimizer;
 import org.apache.rampart.util.RampartUtil;
 import org.apache.ws.secpolicy.WSSPolicyException;
-import org.apache.ws.security.WSSecurityException;
-import org.apache.ws.security.handler.WSHandlerConstants;
-import org.apache.ws.security.message.WSSecHeader;
-import org.apache.ws.security.message.token.SecurityContextToken;
+import org.apache.wss4j.common.ext.WSSecurityException;
+import org.apache.wss4j.dom.handler.WSHandlerConstants;
+import org.apache.wss4j.dom.message.WSSecHeader;
+import org.apache.wss4j.dom.message.token.SecurityContextToken;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
@@ -81,7 +81,7 @@ public class MessageBuilder {
             MessageContext inMsgCtx;
             if(opCtx != null && 
                     (inMsgCtx = opCtx.getMessageContext(WSDLConstants.MESSAGE_LABEL_IN_VALUE)) != null) {
-                msgCtx.setProperty(WSHandlerConstants.RECV_RESULTS, 
+                msgCtx.setProperty(WSHandlerConstants.RECV_RESULTS,
                         inMsgCtx.getProperty(WSHandlerConstants.RECV_RESULTS));
             }
         }

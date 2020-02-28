@@ -47,31 +47,30 @@ import org.apache.ws.secpolicy.model.AlgorithmSuite;
 import org.apache.ws.secpolicy.model.Binding;
 import org.apache.ws.secpolicy.model.Trust10;
 import org.apache.ws.secpolicy.model.Trust13;
-import org.apache.ws.security.WSConstants;
-import org.apache.ws.security.WSPasswordCallback;
-import org.apache.ws.security.WSSecurityException;
-import org.apache.ws.security.components.crypto.Crypto;
-import org.apache.ws.security.conversation.ConversationException;
-import org.apache.ws.security.conversation.dkalgo.P_SHA1;
-import org.apache.ws.security.message.token.Reference;
-import org.apache.ws.security.processor.EncryptedKeyProcessor;
-import org.apache.ws.security.util.WSSecurityUtil;
-import org.apache.ws.security.util.XmlSchemaDateFormat;
+import org.apache.wss4j.dom.WSConstants;
+import org.apache.wss4j.common.ext.WSPasswordCallback;
+import org.apache.wss4j.common.ext.WSSecurityException;
+import org.apache.wss4j.common.crypto.Crypto;
+import org.apache.wss4j.common.derivedKey.P_SHA1;
+import org.apache.wss4j.common.token.Reference;
+import org.apache.wss4j.dom.engine.WSSecurityEngineResult;
+import org.apache.wss4j.dom.handler.RequestData;
+import org.apache.wss4j.dom.processor.EncryptedKeyProcessor;
+import org.apache.wss4j.dom.util.WSSecurityUtil;
+
 import org.w3c.dom.Element;
 
 import javax.security.auth.callback.Callback;
 import javax.security.auth.callback.CallbackHandler;
 import javax.security.auth.callback.UnsupportedCallbackException;
+import javax.xml.bind.DatatypeConverter;
 import javax.xml.namespace.QName;
 import java.io.IOException;
-import java.text.DateFormat;
-import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
-import java.util.Vector;
 
 public class STSClient {
 
@@ -440,17 +439,12 @@ public class STSClient {
      */
     private Date extractExpiryDate(OMElement lifetimeElem) throws TrustException {
         try {
-            DateFormat zulu = new XmlSchemaDateFormat();
 
             OMElement expiresElem =
                     lifetimeElem.getFirstChildWithName(new QName(WSConstants.WSU_NS,
                             WSConstants.EXPIRES_LN));
-            Date expires = zulu.parse(expiresElem.getText());
-            return expires;
+            return DatatypeConverter.parseDateTime(expiresElem.getText()).getTime();
         } catch (OMException e) {
-            throw new TrustException("lifeTimeProcessingError",
-                    new String[]{lifetimeElem.toString()}, e);
-        } catch (ParseException e) {
             throw new TrustException("lifeTimeProcessingError",
                     new String[]{lifetimeElem.toString()}, e);
         }
@@ -573,9 +567,11 @@ public class STSClient {
 
                     EncryptedKeyProcessor processor = new EncryptedKeyProcessor();
 
-                    processor.handleToken(domChild, null, this.crypto,
-                                          this.cbHandler, null, new Vector(),
-                                          null);
+                    RequestData requestData = new RequestData();
+                    requestData.setCallbackHandler(this.cbHandler);
+                    requestData.setDecCrypto(crypto);
+                    List<WSSecurityEngineResult> wsSecurityEngineResults = processor.handleToken(domChild, requestData);
+
 
                     secret = processor.getDecryptedBytes();
                 } catch (WSSecurityException e) {
@@ -607,7 +603,7 @@ public class STSClient {
                             .getMaximumSymmetricKeyLength();
                     try {
                         secret = p_sha1.createKey(this.requestorEntropy, serviceEntr, 0, length/8);
-                    } catch (ConversationException e) {
+                    } catch (WSSecurityException e) {
                         throw new TrustException("keyDerivationError", e);
                     }
                 } else {

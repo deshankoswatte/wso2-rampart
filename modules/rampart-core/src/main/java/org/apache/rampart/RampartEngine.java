@@ -44,23 +44,18 @@ import org.apache.rampart.util.Axis2Util;
 import org.apache.rampart.util.RampartUtil;
 import org.apache.ws.secpolicy.WSSPolicyException;
 import org.apache.ws.secpolicy.model.IssuedToken;
-import org.apache.ws.security.KerberosTokenPrincipal;
-import org.apache.ws.security.WSConstants;
-import org.apache.ws.security.WSSecurityEngine;
-import org.apache.ws.security.WSSecurityEngineResult;
-import org.apache.ws.security.WSSecurityException;
-import org.apache.ws.security.WSUsernameTokenPrincipal;
-import org.apache.ws.security.components.crypto.Crypto;
-import org.apache.ws.security.saml.SAMLKeyInfo;
-import org.apache.ws.security.saml.SAMLUtil;
-//import org.opensaml.SAMLAssertion;
-//import org.opensaml.SAMLSubject;
-//import org.opensaml.SAMLSubjectStatement;
+
+import org.apache.wss4j.common.crypto.Crypto;
+import org.apache.wss4j.common.ext.WSSecurityException;
+import org.apache.wss4j.dom.WSConstants;
+import org.apache.wss4j.dom.engine.WSSecurityEngine;
+import org.apache.wss4j.dom.engine.WSSecurityEngineResult;
 import org.opensaml.saml.saml2.core.Assertion;
 import org.opensaml.saml.saml2.core.Conditions;
 import org.opensaml.saml.saml2.core.Subject;
 import org.opensaml.saml.saml2.core.SubjectConfirmationData;
 
+import javax.security.auth.kerberos.KerberosPrincipal;
 import javax.xml.namespace.QName;
 
 import java.security.cert.X509Certificate;
@@ -416,8 +411,8 @@ public class RampartEngine {
                  msgCtx.setProperty(RampartMessageData.X509_CERT, cert);
 
             } else if (WSConstants.KERBEROS == actInt.intValue()) {
-                KerberosTokenPrincipal principal = null;
-                principal = ((KerberosTokenPrincipal) wser
+                KerberosPrincipal principal = null;
+                principal = ((KerberosPrincipal) wser
                         .get(WSSecurityEngineResult.TAG_PRINCIPAL));
                 if (principal != null) {
                     String clientPricipalName = principal.getClientPrincipalName();

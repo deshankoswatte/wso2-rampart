@@ -39,14 +39,18 @@ import org.apache.rampart.util.RampartUtil;
 import org.apache.ws.secpolicy.SP11Constants;
 import org.apache.ws.secpolicy.SP12Constants;
 import org.apache.ws.secpolicy.WSSPolicyException;
-import org.apache.ws.security.*;
-import org.apache.ws.security.conversation.ConversationConstants;
-import org.apache.ws.security.handler.WSHandlerConstants;
-import org.apache.ws.security.handler.WSHandlerResult;
-import org.apache.ws.security.message.WSSecHeader;
-import org.apache.ws.security.message.token.SecurityContextToken;
-import org.apache.ws.security.util.Loader;
-import org.apache.ws.security.util.WSSecurityUtil;
+
+import org.apache.wss4j.common.derivedKey.ConversationConstants;
+import org.apache.wss4j.common.util.Loader;
+import org.apache.wss4j.dom.SOAPConstants;
+import org.apache.wss4j.dom.WSConstants;
+import org.apache.wss4j.dom.engine.WSSConfig;
+import org.apache.wss4j.dom.engine.WSSecurityEngineResult;
+import org.apache.wss4j.dom.handler.WSHandlerConstants;
+import org.apache.wss4j.dom.handler.WSHandlerResult;
+import org.apache.wss4j.dom.message.WSSecHeader;
+import org.apache.wss4j.dom.message.token.SecurityContextToken;
+import org.apache.wss4j.dom.util.WSSecurityUtil;
 import org.opensaml.saml.saml2.core.Assertion;
 import org.w3c.dom.Document;
 
@@ -648,9 +652,9 @@ public class RampartMessageData {
 			if (results != null) {
 				for (int i = 0; i < results.size(); i++) {
 					WSHandlerResult rResult = (WSHandlerResult) results.get(i);
-					Vector wsSecEngineResults = rResult.getResults();
+					List<WSSecurityEngineResult> wsSecEngineResults = rResult.getResults();
 					for (int j = 0; j < wsSecEngineResults.size(); j++) {
-						WSSecurityEngineResult wser = (WSSecurityEngineResult) wsSecEngineResults
+						WSSecurityEngineResult wser = wsSecEngineResults
 								.get(j);
 						Integer actInt = (Integer) wser.get(WSSecurityEngineResult.TAG_ACTION);
 						if (WSConstants.ST_UNSIGNED == actInt.intValue())
@@ -689,15 +693,15 @@ public class RampartMessageData {
             Vector results = (Vector)this.msgContext.getProperty(WSHandlerConstants.RECV_RESULTS);
             for (int i = 0; i < results.size(); i++) {
                 WSHandlerResult rResult = (WSHandlerResult) results.get(i);
-                Vector wsSecEngineResults = rResult.getResults();
+                List<WSSecurityEngineResult> wsSecEngineResults = rResult.getResults();
 
                 for (int j = 0; j < wsSecEngineResults.size(); j++) {
-                    WSSecurityEngineResult wser = (WSSecurityEngineResult) wsSecEngineResults
+                    WSSecurityEngineResult wser = wsSecEngineResults
                             .get(j);
                     final Integer actInt = 
                         (Integer)wser.get(WSSecurityEngineResult.TAG_ACTION);
                     if(WSConstants.SCT == actInt.intValue()) {
-                        final SecurityContextToken sct = 
+                        final SecurityContextToken sct =
                             ((SecurityContextToken) wser
                                 .get(WSSecurityEngineResult.TAG_SECURITY_CONTEXT_TOKEN));
                         id = sct.getID();

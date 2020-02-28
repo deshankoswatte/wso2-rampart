@@ -17,9 +17,9 @@
 package org.apache.rampart.handler.config;
 
 import org.apache.rampart.handler.WSSHandlerConstants;
-import org.apache.ws.security.handler.WSHandlerConstants;
 
 import junit.framework.TestCase;
+import org.apache.wss4j.dom.handler.WSHandlerConstants;
 
 public class InflowConfigurationTest extends TestCase {
 

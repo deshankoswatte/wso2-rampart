@@ -58,7 +58,7 @@ public class TrustException extends Exception {
     
     /**
      * Construct the fault properly code for the standard faults
-     * @param faultCode2
+     * @param code
      * @return
      */
     private String getFaultCode(String code) {

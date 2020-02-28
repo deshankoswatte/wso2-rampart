@@ -23,9 +23,11 @@ import org.apache.rahas.TokenValidator;
 import org.apache.rahas.TrustException;
 import org.apache.rahas.TrustUtil;
 import org.apache.rahas.impl.util.SAML2Utils;
-import org.apache.ws.security.WSSecurityException;
-import org.apache.ws.security.components.crypto.Crypto;
-import org.apache.ws.security.components.crypto.CryptoFactory;
+
+import org.apache.wss4j.common.crypto.Crypto;
+import org.apache.wss4j.common.crypto.CryptoFactory;
+import org.apache.wss4j.common.crypto.CryptoType;
+import org.apache.wss4j.common.ext.WSSecurityException;
 import org.opensaml.core.config.InitializationException;
 import org.opensaml.core.xml.config.XMLObjectProviderRegistrySupport;
 import org.opensaml.saml.saml2.core.Assertion;
@@ -222,15 +224,20 @@ public class SAMLTokenValidator implements TokenValidator {
      * @param config
      * @return Crypto
      */
-    private Crypto getCrypto(MessageContext inMsgCtx, SAMLTokenIssuerConfig config) {
-        if (config.cryptoElement != null) {
-            // crypto props defined as elements
-            return CryptoFactory.getInstance(TrustUtil.toProperties(config.cryptoElement), inMsgCtx
-                    .getAxisService().getClassLoader());
-        } else {
-            // crypto props defined in a properties file
-            return CryptoFactory.getInstance(config.cryptoPropertiesFile, inMsgCtx.getAxisService()
-                    .getClassLoader());
+    private Crypto getCrypto(MessageContext inMsgCtx, SAMLTokenIssuerConfig config) throws TrustException {
+
+        try {
+            if (config.cryptoElement != null) {
+                // crypto props defined as elements
+                return CryptoFactory.getInstance(TrustUtil.toProperties(config.cryptoElement), inMsgCtx
+                        .getAxisService().getClassLoader(), null);
+            } else {
+                // crypto props defined in a properties file
+                return CryptoFactory.getInstance(config.cryptoPropertiesFile, inMsgCtx.getAxisService()
+                        .getClassLoader());
+            }
+        } catch (WSSecurityException e) {
+            throw new TrustException("Error occurred while extracting the crypto.", e);
         }
     }
     
@@ -245,7 +252,9 @@ public class SAMLTokenValidator implements TokenValidator {
         PublicKey issuerPBKey = null;
 
         try {
-            issuerPBKey = crypto.getCertificates(config.issuerKeyAlias)[0].getPublicKey();
+            CryptoType cryptoType = new CryptoType(CryptoType.TYPE.ALIAS);
+            cryptoType.setAlias(config.issuerKeyAlias);
+            issuerPBKey = crypto.getX509Certificates(cryptoType)[0].getPublicKey();
         } catch (WSSecurityException e) {
             log.error("Error occurred while retrieving issuer public key.", e);
         }
@@ -268,16 +277,16 @@ public class SAMLTokenValidator implements TokenValidator {
             samlAssertion = (Assertion) unmarshaller.unmarshall(element);
         } catch (UnmarshallingException e) {
             throw new WSSecurityException(
-                    WSSecurityException.FAILURE, "Failure in unmarshelling the assertion", null, e);
+                    WSSecurityException.ErrorCode.FAILURE, e, "Failure in unmarshelling the assertion");
         } catch (IOException e) {
             throw new WSSecurityException(
-                    WSSecurityException.FAILURE, "Failure in unmarshelling the assertion", null, e);
+                    WSSecurityException.ErrorCode.FAILURE, e, "Failure in unmarshelling the assertion");
         } catch (SAXException e) {
             throw new WSSecurityException(
-                    WSSecurityException.FAILURE, "Failure in unmarshelling the assertion", null, e);
+                    WSSecurityException.ErrorCode.FAILURE, e, "Failure in unmarshelling the assertion");
         } catch (ParserConfigurationException e) {
             throw new WSSecurityException(
-                    WSSecurityException.FAILURE, "Failure in unmarshelling the assertion", null, e);
+                    WSSecurityException.ErrorCode.FAILURE, e, "Failure in unmarshelling the assertion");
         }
 
         if (log.isDebugEnabled()) {

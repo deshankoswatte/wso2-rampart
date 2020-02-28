@@ -22,13 +22,12 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.rahas.TrustException;
 import org.apache.rahas.TrustUtil;
-import org.apache.ws.security.WSConstants;
-import org.apache.ws.security.WSPasswordCallback;
-import org.apache.ws.security.WSSecurityEngine;
-import org.apache.ws.security.WSSecurityException;
-import org.apache.ws.security.components.crypto.Crypto;
-import org.apache.ws.security.processor.EncryptedKeyProcessor;
-import org.apache.ws.security.util.Base64;
+import org.apache.wss4j.dom.WSConstants;
+import org.apache.wss4j.common.ext.WSPasswordCallback;
+import org.apache.wss4j.common.ext.WSSecurityException;
+import org.apache.wss4j.common.crypto.Crypto;
+import org.apache.wss4j.dom.handler.RequestData;
+import org.apache.wss4j.dom.processor.EncryptedKeyProcessor;
 import org.apache.xml.security.exceptions.XMLSecurityException;
 import org.apache.xml.security.keys.KeyInfo;
 import org.apache.xml.security.keys.content.X509Data;
@@ -85,14 +84,14 @@ import java.util.Random;
 public class SAML2Utils {
 
     private static Random random = new Random();
-    private static final char[] charMapping = { 'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j',
-            'k', 'l', 'm', 'n', 'o', 'p' };
+    private static final char[] charMapping = {'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j',
+            'k', 'l', 'm', 'n', 'o', 'p'};
 
     private static final Log log = LogFactory.getLog(SAML2Utils.class);
 
     public static Element getElementFromAssertion(XMLObject xmlObj) throws TrustException {
         try {
-            
+
             String jaxpProperty = System.getProperty("javax.xml.parsers.DocumentBuilderFactory");
             System.setProperty("javax.xml.parsers.DocumentBuilderFactory", "org.apache.xerces.jaxp.DocumentBuilderFactoryImpl");
 
@@ -120,16 +119,16 @@ public class SAML2Utils {
             writer.write(element, output);
             String elementString = byteArrayOutputStrm.toString();
 
-           if (!TrustUtil.isDoomParserPoolUsed()) {
-               DocumentBuilderFactoryImpl.setDOOMRequired(true);
-           }
+            if (!TrustUtil.isDoomParserPoolUsed()) {
+                DocumentBuilderFactoryImpl.setDOOMRequired(true);
+            }
             DocumentBuilderFactory documentBuilderFactory = DocumentBuilderFactory.newInstance();
             documentBuilderFactory.setNamespaceAware(true);
             DocumentBuilder docBuilder = documentBuilderFactory.newDocumentBuilder();
             Document document = docBuilder.parse(new ByteArrayInputStream(elementString.trim().getBytes()));
             Element assertionElement = document.getDocumentElement();
             if (!TrustUtil.isDoomParserPoolUsed()) {
-                     DocumentBuilderFactoryImpl.setDOOMRequired(false);
+                DocumentBuilderFactoryImpl.setDOOMRequired(false);
             }
             log.debug("DOM element is created successfully from the OpenSAML2 XMLObject");
             return assertionElement;
@@ -139,16 +138,15 @@ public class SAML2Utils {
         }
     }
 
-     /**
+    /**
      * Extract certificates or the key available in the SAMLAssertion
      *
      * @param elem
      * @return the SAML2 Key Info
-     * @throws org.apache.ws.security.WSSecurityException
-     *
+     * @throws org.apache.wss4j.common.ext.WSSecurityException
      */
     public static SAML2KeyInfo getSAML2KeyInfo(Element elem, Crypto crypto,
-                                              CallbackHandler cb) throws WSSecurityException {
+                                               CallbackHandler cb) throws WSSecurityException {
         Assertion assertion;
 
         // Build the assertion by unmarshalling the DOM element.
@@ -167,22 +165,21 @@ public class SAML2Utils {
                     .getUnmarshaller(element);
             assertion = (Assertion) unmarshaller
                     .unmarshall(element);
-        }
-        catch (InitializationException e) {
+        } catch (InitializationException e) {
             throw new WSSecurityException(
-                    WSSecurityException.FAILURE, "Failure in bootstrapping", null, e);
+                    WSSecurityException.ErrorCode.FAILURE, e, "Failure in bootstrapping");
         } catch (UnmarshallingException e) {
             throw new WSSecurityException(
-                    WSSecurityException.FAILURE, "Failure in unmarshelling the assertion", null, e);
+                    WSSecurityException.ErrorCode.FAILURE, e, "Failure in unmarshelling the assertion");
         } catch (IOException e) {
             throw new WSSecurityException(
-                    WSSecurityException.FAILURE, "Failure in unmarshelling the assertion", null, e);
+                    WSSecurityException.ErrorCode.FAILURE, e, "Failure in unmarshelling the assertion");
         } catch (SAXException e) {
             throw new WSSecurityException(
-                    WSSecurityException.FAILURE, "Failure in unmarshelling the assertion", null, e);
+                    WSSecurityException.ErrorCode.FAILURE, e, "Failure in unmarshelling the assertion");
         } catch (ParserConfigurationException e) {
             throw new WSSecurityException(
-                    WSSecurityException.FAILURE, "Failure in unmarshelling the assertion", null, e);
+                    WSSecurityException.ErrorCode.FAILURE, e, "Failure in unmarshelling the assertion");
         }
         return getSAML2KeyInfo(assertion, crypto, cb);
 
@@ -197,8 +194,7 @@ public class SAML2Utils {
             try {
                 cb.handle(new Callback[]{pwcb});
             } catch (Exception e1) {
-                throw new WSSecurityException(WSSecurityException.FAILURE, "noKey",
-                        new Object[]{assertion.getID()}, e1);
+                throw new WSSecurityException(WSSecurityException.ErrorCode.FAILURE, e1, "noKey", new Object[]{assertion.getID()});
             }
         }
 
@@ -212,22 +208,22 @@ public class SAML2Utils {
                 // extract the subject
                 Subject samlSubject = assertion.getSubject();
                 if (samlSubject == null) {
-                    throw new WSSecurityException(WSSecurityException.FAILURE,
+                    throw new WSSecurityException(WSSecurityException.ErrorCode.FAILURE,
                             "invalidSAML2Token", new Object[]{"for Signature (no Subject)"});
                 }
 
                 // extract the subject confirmation element from the subject
-                SubjectConfirmation subjectConf = (SubjectConfirmation) samlSubject.getSubjectConfirmations().get(0);
+                SubjectConfirmation subjectConf = samlSubject.getSubjectConfirmations().get(0);
                 if (subjectConf == null) {
-                    throw new WSSecurityException(WSSecurityException.FAILURE,
+                    throw new WSSecurityException(WSSecurityException.ErrorCode.FAILURE,
                             "invalidSAML2Token", new Object[]{"for Signature (no Subject Confirmation)"});
                 }
 
                 // Get the subject confirmation data, KeyInfoConfirmationDataType extends SubjectConfirmationData.
                 SubjectConfirmationData scData = subjectConf.getSubjectConfirmationData();
-                
+
                 if (scData == null) {
-                    throw new WSSecurityException(WSSecurityException.FAILURE,
+                    throw new WSSecurityException(WSSecurityException.ErrorCode.FAILURE,
                             "invalidSAML2Token", new Object[]{"for Signature (no Subject Confirmation Data)"});
                 }
 
@@ -265,14 +261,14 @@ public class SAML2Utils {
                     }
 
                 } else {
-                    throw new WSSecurityException(WSSecurityException.FAILURE,
+                    throw new WSSecurityException(WSSecurityException.ErrorCode.FAILURE,
                             "invalidSAML2Token", new Object[]{"for Signature (no key info element)"});
                 }
 
                 AttributeStatement attrStmt = assertion.getAttributeStatements().size() != 0 ?
-                        (AttributeStatement) assertion.getAttributeStatements().get(0) : null;
+                        assertion.getAttributeStatements().get(0) : null;
                 AuthnStatement authnStmt = assertion.getAuthnStatements().size() != 0 ?
-                        (AuthnStatement) assertion.getAuthnStatements().get(0) : null;
+                        assertion.getAuthnStatements().get(0) : null;
 
                 // if an attr stmt is present, then it has a symmetric key.
                 if (attrStmt != null) {
@@ -285,15 +281,19 @@ public class SAML2Utils {
                             continue;
                         }
                         QName el = new QName(child.getNamespaceURI(), child.getLocalName());
-                        if (el.equals(WSSecurityEngine.ENCRYPTED_KEY)) {
+                        if (el.equals(WSConstants.ENCRYPTED_KEY)) {
 
                             EncryptedKeyProcessor proc = new EncryptedKeyProcessor();
-                            proc.handleEncryptedKey((Element) child, cb, crypto, null);
+                            RequestData requestData = new RequestData();
+                            requestData.setCallbackHandler(cb);
+                            requestData.setDecCrypto(crypto);
+
+                            proc.handleToken((Element) child, requestData);
 
                             return new SAML2KeyInfo(assertion, proc.getDecryptedBytes());
                         } else if (el.equals(new QName(WSConstants.WST_NS, "BinarySecret"))) {
                             Text txt = (Text) child.getFirstChild();
-                            return new SAML2KeyInfo(assertion, Base64.decode(txt.getData()));
+                            return new SAML2KeyInfo(assertion, Base64Support.decode(txt.getData()));
                         } else if (el.equals(new QName(WSConstants.SIG_NS, "X509Data"))) {
                             X509Certificate[] certs = null;
                             try {
@@ -314,9 +314,9 @@ public class SAML2Utils {
                                 }
 
                             } catch (XMLSecurityException e3) {
-                                throw new WSSecurityException(WSSecurityException.FAILURE,
+                                throw new WSSecurityException(WSSecurityException.ErrorCode.FAILURE, e3,
                                         "invalidSAMLsecurity",
-                                        new Object[]{"cannot get certificate (key holder)"}, e3);
+                                        new Object[]{"cannot get certificate (key holder)"});
                             }
 
                         }
@@ -346,21 +346,21 @@ public class SAML2Utils {
                         }
 
                     } catch (XMLSecurityException e3) {
-                        throw new WSSecurityException(WSSecurityException.FAILURE,
+                        throw new WSSecurityException(WSSecurityException.ErrorCode.FAILURE, e3,
                                 "invalidSAMLsecurity",
-                                new Object[]{"cannot get certificate (key holder)"}, e3);
+                                new Object[]{"cannot get certificate (key holder)"});
                     }
 
                 }
 
 
-                throw new WSSecurityException(WSSecurityException.FAILURE,
+                throw new WSSecurityException(WSSecurityException.ErrorCode.FAILURE,
                         "invalidSAMLsecurity",
                         new Object[]{"cannot get certificate or key "});
 
             } catch (MarshallingException e) {
-                throw new WSSecurityException(WSSecurityException.FAILURE,
-                        "Failed marshalling the SAML Assertion", null, e);
+                throw new WSSecurityException(WSSecurityException.ErrorCode.FAILURE, e,
+                        "Failed marshalling the SAML Assertion");
             }
         }
     }
@@ -386,14 +386,14 @@ public class SAML2Utils {
         String alias = null;
         List x509Data = assertion.getSignature().getKeyInfo().getX509Datas();
         if (x509Data != null && x509Data.size() > 0) {
-            org.opensaml.xmlsec.signature.X509Data x509Cred = (org.opensaml.xmlsec.signature.X509Data)x509Data.get(0);
+            org.opensaml.xmlsec.signature.X509Data x509Cred = (org.opensaml.xmlsec.signature.X509Data) x509Data.get(0);
             List x509Certs = x509Cred.getX509Certificates();
             if (x509Certs != null && x509Certs.size() > 0) {
-                org.opensaml.xmlsec.signature.X509Certificate cert = (org.opensaml.xmlsec.signature.X509Certificate)x509Certs.get(0);
+                org.opensaml.xmlsec.signature.X509Certificate cert = (org.opensaml.xmlsec.signature.X509Certificate) x509Certs.get(0);
 
                 try {
                     CertificateFactory cf = CertificateFactory.getInstance("X.509");
-                    X509Certificate x509Certificate = (X509Certificate)cf.generateCertificate(new ByteArrayInputStream(Base64Support.decode(cert.getValue())));
+                    X509Certificate x509Certificate = (X509Certificate) cf.generateCertificate(new ByteArrayInputStream(Base64Support.decode(cert.getValue())));
                     alias = crypto.getAliasForX509CertThumb(calculateThumbPrint(x509Certificate));
                     if (alias != null) {
                         class X509CredentialImpl implements X509Credential {
@@ -448,20 +448,20 @@ public class SAML2Utils {
                             }
                         }
 
-                        SignatureValidator.validate(assertion.getSignature(),new X509CredentialImpl(crypto.getCertificates(alias)[0]));
+                        SignatureValidator.validate(assertion.getSignature(), new X509CredentialImpl(crypto.getCertificates(alias)[0]));
                     } else {
-                        throw new WSSecurityException(0, "SAMLTokenUntrustedSignatureKey");
+                        throw new WSSecurityException(WSSecurityException.ErrorCode.FAILURE, "SAMLTokenUntrustedSignatureKey");
                     }
                 } catch (CertificateException var10) {
-                    throw new WSSecurityException("SAMLTokenErrorGeneratingX509CertInstance", var10);
+                    throw new WSSecurityException(WSSecurityException.ErrorCode.FAILURE, var10, "SAMLTokenErrorGeneratingX509CertInstance");
                 } catch (SignatureException var11) {
-                    throw new WSSecurityException(10, "SAMLTokenInvalidSignature");
+                    throw new WSSecurityException(WSSecurityException.ErrorCode.FAILURE, "SAMLTokenInvalidSignature");
                 }
             } else {
-                throw new WSSecurityException(0, "SAMLTokenInvalidX509Data");
+                throw new WSSecurityException(WSSecurityException.ErrorCode.FAILURE, "SAMLTokenInvalidX509Data");
             }
         } else {
-            throw new WSSecurityException(0, "SAMLTokenInvalidX509Data");
+            throw new WSSecurityException(WSSecurityException.ErrorCode.FAILURE, "SAMLTokenInvalidX509Data");
         }
     }
 

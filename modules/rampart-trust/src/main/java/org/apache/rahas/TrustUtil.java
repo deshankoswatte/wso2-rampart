@@ -32,10 +32,9 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.rahas.impl.AbstractIssuerConfig;
 import org.apache.xerces.util.SecurityManager;
-import org.apache.ws.security.WSConstants;
-import org.apache.ws.security.message.token.Reference;
-import org.apache.ws.security.message.token.SecurityTokenReference;
-import org.apache.ws.security.util.XmlSchemaDateFormat;
+import org.apache.wss4j.dom.WSConstants;
+import org.apache.wss4j.common.token.Reference;
+import org.apache.wss4j.common.token.SecurityTokenReference;
 import org.opensaml.saml.saml2.core.Assertion;
 import org.opensaml.saml.saml2.core.SubjectConfirmation;
 import org.w3c.dom.Document;
@@ -47,10 +46,12 @@ import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
 import java.security.SecureRandom;
 import java.text.DateFormat;
+import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Properties;
+import java.util.TimeZone;
 
 public class TrustUtil {
 
@@ -401,12 +402,14 @@ public class TrustUtil {
         Date expirationTime = new Date();
         expirationTime.setTime(creationTime.getTime() + ttl);
 
-        DateFormat zulu = new XmlSchemaDateFormat();
+        TimeZone timeZone = TimeZone.getTimeZone("UTC");
+        DateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'");
+        dateFormat.setTimeZone(timeZone);
 
         return createLifetimeElement(version,
                                      parent,
-                                     zulu.format(creationTime),
-                                     zulu.format(expirationTime));
+                                     dateFormat.format(creationTime),
+                                     dateFormat.format(expirationTime));
     }
 
     public static OMElement createAppliesToElement(OMElement parent,

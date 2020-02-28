@@ -18,8 +18,8 @@ package org.apache.rampart.handler.config;
 
 import junit.framework.TestCase;
 import org.apache.rampart.handler.WSSHandlerConstants;
-import org.apache.ws.security.WSConstants;
-import org.apache.ws.security.handler.WSHandlerConstants;
+import org.apache.wss4j.dom.WSConstants;
+import org.apache.wss4j.dom.handler.WSHandlerConstants;
 
 /**
  * Tests the org.apache.axis2.security.handler.config.OutflowConfiguration
@@ -115,9 +115,9 @@ public class OutflowConfigurationTest extends TestCase {
 
 		assertTrue("EmbeddedKeyCallbackClass missing", -1 < ofc.getProperty().getParameterElement().toString()
 				.indexOf(
-						"<" + WSHandlerConstants.ENC_CALLBACK_CLASS + ">"
+						"<" + "EmbeddedKeyCallbackClass" + ">"
 								+ embeddedKeyCallbackClass + "</"
-								+ WSHandlerConstants.ENC_CALLBACK_CLASS + ">"));
+								+ "EmbeddedKeyCallbackClass" + ">"));
 
 		assertTrue("encryptionKeyTransportAlgorithm missing", -1 < ofc.getProperty().getParameterElement().toString()
 				.indexOf(
@@ -145,9 +145,9 @@ public class OutflowConfigurationTest extends TestCase {
 
 		assertTrue("samlPropFile missing", -1 < ofc.getProperty().getParameterElement().toString()
 				.indexOf(
-						"<" + WSHandlerConstants.SAML_PROP_FILE + ">"
+						"<" + "samlPropFile" + ">"
 								+ samlPropFile + "</"
-								+ WSHandlerConstants.SAML_PROP_FILE + ">"));
+								+ "samlPropFile" + ">"));
 
 		assertTrue("sigPropFile missing", -1 < ofc.getProperty().getParameterElement().toString()
 				.indexOf(

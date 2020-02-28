@@ -22,21 +22,23 @@ import org.apache.axiom.om.impl.dom.factory.OMDOMFactory;
 import org.apache.axiom.om.util.Base64;
 import org.apache.axis2.addressing.AddressingConstants;
 import org.apache.axis2.context.MessageContext;
-import org.apache.ws.security.WSConstants;
-import org.apache.ws.security.WSSecurityEngineResult;
-import org.apache.ws.security.WSSecurityException;
-import org.apache.ws.security.handler.WSHandlerConstants;
-import org.apache.ws.security.handler.WSHandlerResult;
-import org.apache.ws.security.KerberosTokenPrincipal;
-import org.apache.ws.security.message.token.SecurityTokenReference;
-//import org.opensaml.SAMLAssertion;
+import org.apache.wss4j.common.bsp.BSPEnforcer;
+import org.apache.wss4j.dom.WSConstants;
+import org.apache.wss4j.dom.engine.WSSecurityEngineResult;
+import org.apache.wss4j.common.ext.WSSecurityException;
+import org.apache.wss4j.dom.handler.WSHandlerConstants;
+import org.apache.wss4j.dom.handler.WSHandlerResult;
+import org.apache.wss4j.policy.model.KerberosToken;
+import org.apache.wss4j.common.token.SecurityTokenReference;
 import org.opensaml.saml.saml2.core.Assertion;
 import org.w3c.dom.Element;
 
+import javax.security.auth.kerberos.KerberosPrincipal;
 import javax.xml.namespace.QName;
 
 import java.security.Principal;
 import java.security.cert.X509Certificate;
+import java.util.List;
 import java.util.Vector;
 import java.util.Iterator;
 
@@ -175,14 +177,13 @@ public class RahasData {
 
             for (int i = 0; i < results.size(); i++) {
                 WSHandlerResult rResult = (WSHandlerResult) results.get(i);
-                Vector wsSecEngineResults = rResult.getResults();
+                List<WSSecurityEngineResult> wsSecEngineResults = rResult.getResults();
 
                 for (int j = 0; j < wsSecEngineResults.size(); j++) {
-                    WSSecurityEngineResult wser = (WSSecurityEngineResult) wsSecEngineResults
+                    WSSecurityEngineResult wser = wsSecEngineResults
                             .get(j);
                     Object principalObject = wser.get(WSSecurityEngineResult.TAG_PRINCIPAL);
-                    int act = ((Integer)wser.get(WSSecurityEngineResult.TAG_ACTION)).
-                            intValue();
+                    int act = (Integer) wser.get(WSSecurityEngineResult.TAG_ACTION);
                     if (act == WSConstants.SIGN && principalObject != null) {
                         this.clientCert = (X509Certificate) wser
                                 .get(WSSecurityEngineResult.TAG_X509_CERTIFICATE);
@@ -190,7 +191,7 @@ public class RahasData {
                     } else if (act == WSConstants.UT && principalObject != null) {
                         this.principal = (Principal)principalObject;
                     } else if (act == WSConstants.BST) {
-                        final X509Certificate[] certificates = 
+                        final X509Certificate[] certificates =
                             (X509Certificate[]) wser
                                 .get(WSSecurityEngineResult.TAG_X509_CERTIFICATES);
 						if (certificates != null && certificates.length > 0) {
@@ -207,8 +208,8 @@ public class RahasData {
 //							this.assertion = (SAMLAssertion) wser
 //									.get(WSSecurityEngineResult.TAG_SAML_ASSERTION);
 //						}
-					} else if (act == WSConstants.KERBEROS || act == WSConstants.KERBEROS_SIGN) {
-						this.principal = (KerberosTokenPrincipal) principalObject;
+//					} else if (act == WSConstants.KERBEROS || act == WSConstants.KERBEROS_SIGN) {
+//						this.principal = (KerberosPrincipal) principalObject;
 
 					}
 
@@ -357,7 +358,7 @@ public class RahasData {
                     strElem.getXMLStreamReader()).getDocumentElement());
             
             try {
-                SecurityTokenReference str = new SecurityTokenReference((Element)elem);
+                SecurityTokenReference str = new SecurityTokenReference(elem, new BSPEnforcer());
                 if (str.containsReference()) {
                     tokenId = str.getReference().getURI();
                 } else if(str.containsKeyIdentifier()){
@@ -383,7 +384,7 @@ public class RahasData {
                     strElem.getXMLStreamReader()).getDocumentElement());
             
             try {
-                SecurityTokenReference str = new SecurityTokenReference((Element)elem);
+                SecurityTokenReference str = new SecurityTokenReference(elem, new BSPEnforcer());
                 if (str.containsReference()) {
                     tokenId = str.getReference().getURI();
                 } else if(str.containsKeyIdentifier()){

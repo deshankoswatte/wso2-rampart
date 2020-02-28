@@ -21,7 +21,7 @@ import org.apache.axiom.om.OMElement;
 import org.apache.axiom.om.OMFactory;
 import org.apache.axis2.description.Parameter;
 import org.apache.rampart.handler.WSSHandlerConstants;
-import org.apache.ws.security.handler.WSHandlerConstants;
+import org.apache.wss4j.dom.handler.WSHandlerConstants;
 
 import java.util.HashMap;
 import java.util.Iterator;
@@ -412,7 +412,7 @@ public class OutflowConfiguration {
 	 */
 	public void setEmbeddedKeyCallbackClass(String embeddedKeyCallbackClass) {
 		this.actionList[this.currentAction]
-				.put(WSHandlerConstants.ENC_CALLBACK_CLASS,
+				.put("EmbeddedKeyCallbackClass",
 						embeddedKeyCallbackClass);
 	}
 
@@ -423,7 +423,7 @@ public class OutflowConfiguration {
 	 */
 	public String getEmbeddedKeyCallbackClass() {
 		return (String) this.actionList[this.currentAction]
-				.get(WSHandlerConstants.ENC_CALLBACK_CLASS);
+				.get("EmbeddedKeyCallbackClass");
 	}
 
 	/**
@@ -454,7 +454,7 @@ public class OutflowConfiguration {
 	 */
 	public void setSamlPropFile(String samlPropFile) {
 		this.actionList[this.currentAction].put(
-				WSHandlerConstants.SAML_PROP_FILE, samlPropFile);
+				"samlPropFile", samlPropFile);
 	}
 	
 	/**
@@ -463,7 +463,7 @@ public class OutflowConfiguration {
 	 */
 	public String getSamlPropFile() {
 		return (String) this.actionList[this.currentAction]
-				.get(WSHandlerConstants.SAML_PROP_FILE);
+				.get("samlPropFile");
 	}
 	
 	/**
@@ -519,7 +519,7 @@ public class OutflowConfiguration {
 	 */
 	public void setAddUTElements(String addUTElements) {
 		this.actionList[this.currentAction].put(
-				WSHandlerConstants.ADD_UT_ELEMENTS, addUTElements);
+				"addUTElements", addUTElements);
 	}
 	
 	/**
@@ -527,7 +527,7 @@ public class OutflowConfiguration {
 	 */
 	public String getAddUTElements() {
 		return (String) this.actionList[this.currentAction]
-				.get(WSHandlerConstants.ADD_UT_ELEMENTS);
+				.get("addUTElements");
 	}
 	
 	/**
@@ -536,7 +536,7 @@ public class OutflowConfiguration {
 	 */
 	public void setEmbeddedKeyName(String embeddedKeyName) {
 		this.actionList[this.currentAction].put(
-				WSHandlerConstants.ENC_KEY_NAME, embeddedKeyName);
+				"EmbeddedKeyName", embeddedKeyName);
 	}
 	
 	/**
@@ -545,7 +545,7 @@ public class OutflowConfiguration {
 	 */
 	public String getEmbeddedKeyName() {
 		return (String) this.actionList[this.currentAction]
-				.get(WSHandlerConstants.ENC_KEY_NAME);
+				.get("EmbeddedKeyName");
 	}
 	
 	/**

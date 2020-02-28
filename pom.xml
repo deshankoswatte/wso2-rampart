@@ -418,11 +418,11 @@
                 <artifactId>org.wso2.carbon.identity.saml.common.util</artifactId>
                 <version>${saml.common.util.version}</version>
             </dependency>
-            <dependency>
-                <groupId>org.apache.ws.security.wso2</groupId>
-                <artifactId>wss4j</artifactId>
-                <version>${orbit.version.wss4j}</version>
-            </dependency>
+            <!--<dependency>-->
+                <!--<groupId>org.apache.ws.security.wso2</groupId>-->
+                <!--<artifactId>wss4j</artifactId>-->
+                <!--<version>${orbit.version.wss4j}</version>-->
+            <!--</dependency>-->
             <dependency>
                 <groupId>commons-logging</groupId>
                 <artifactId>commons-logging</artifactId>
@@ -452,6 +452,41 @@
                         <artifactId>org.osgi.core</artifactId>
                     </exclusion>
                 </exclusions>
+            </dependency>
+            <dependency>
+                <groupId>org.apache.wss4j</groupId>
+                <artifactId>wss4j-bindings</artifactId>
+                <version>${wss4j.new.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.apache.wss4j</groupId>
+                <artifactId>wss4j-policy</artifactId>
+                <version>${wss4j.new.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.apache.wss4j</groupId>
+                <artifactId>wss4j-ws-security-common</artifactId>
+                <version>${wss4j.new.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.apache.wss4j</groupId>
+                <artifactId>wss4j-ws-security-dom</artifactId>
+                <version>${wss4j.new.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.apache.wss4j</groupId>
+                <artifactId>wss4j-ws-security-policy-stax</artifactId>
+                <version>${wss4j.new.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.apache.wss4j</groupId>
+                <artifactId>wss4j-ws-security-stax</artifactId>
+                <version>${wss4j.new.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.apache.wss4j</groupId>
+                <artifactId>wss4j-ws-security-web</artifactId>
+                <version>${wss4j.new.version}</version>
             </dependency>
             <dependency>
                 <groupId>org.apache.ws.security</groupId>
@@ -558,6 +593,7 @@
         <axiom.version>1.2.11-wso2v16</axiom.version>
 
         <wss4j.version>1.5.11-wso2v20</wss4j.version>
+        <wss4j.new.version>2.2.4</wss4j.new.version>
         <xmlsec.version>1.4.2</xmlsec.version>
         <xercesImpl.version>2.8.1.wso2v2</xercesImpl.version>
         <neethi.version>2.0.4.wso2v5</neethi.version>

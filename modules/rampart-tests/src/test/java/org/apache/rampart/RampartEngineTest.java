@@ -16,25 +16,16 @@
 
 package org.apache.rampart;
 
-import java.io.ByteArrayInputStream;
-import java.util.Vector;
-import java.util.ArrayList;
-import java.security.cert.X509Certificate;
-
-import org.apache.axiom.om.OMElement;
 import org.apache.axiom.soap.SOAPEnvelope;
 import org.apache.axis2.builder.SOAPBuilder;
 import org.apache.axis2.context.MessageContext;
-import org.apache.axis2.engine.AxisEngine;
-import org.apache.axis2.namespace.Constants;
 import org.apache.neethi.Policy;
-import org.apache.rampart.util.Axis2Util;
-import org.apache.ws.security.WSConstants;
-import org.apache.ws.security.WSSecurityEngineResult;
-import org.apache.ws.security.handler.WSHandlerResult;
-import org.apache.ws.security.handler.WSHandlerConstants;
+import org.apache.wss4j.dom.WSConstants;
+import org.apache.wss4j.dom.engine.WSSecurityEngineResult;
 
-import javax.xml.namespace.QName;
+import java.io.ByteArrayInputStream;
+import java.util.Vector;
+import java.security.cert.X509Certificate;
 
 public class RampartEngineTest extends MessageBuilderTestBase {
 

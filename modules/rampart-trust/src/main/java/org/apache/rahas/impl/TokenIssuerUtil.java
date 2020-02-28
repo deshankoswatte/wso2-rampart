@@ -28,15 +28,14 @@ import org.apache.rahas.TokenPersister;
 import org.apache.rahas.TokenStorage;
 import org.apache.rahas.TrustException;
 import org.apache.rahas.TrustUtil;
-import org.apache.ws.security.WSConstants;
-import org.apache.ws.security.WSSecurityException;
-import org.apache.ws.security.components.crypto.Crypto;
-import org.apache.ws.security.components.crypto.CryptoFactory;
-import org.apache.ws.security.conversation.ConversationException;
-import org.apache.ws.security.conversation.dkalgo.P_SHA1;
-import org.apache.ws.security.message.WSSecEncryptedKey;
-import org.apache.ws.security.util.Loader;
-import org.apache.ws.security.util.WSSecurityUtil;
+import org.apache.wss4j.dom.WSConstants;
+import org.apache.wss4j.common.crypto.Crypto;
+import org.apache.wss4j.common.crypto.CryptoFactory;
+import org.apache.wss4j.common.derivedKey.P_SHA1;
+import org.apache.wss4j.dom.message.WSSecEncryptedKey;
+import org.apache.wss4j.common.util.Loader;
+import org.apache.wss4j.dom.util.WSSecurityUtil;
+import org.apache.wss4j.common.ext.WSSecurityException;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 
@@ -80,8 +79,6 @@ public class TokenIssuerUtil {
             }
         } catch (WSSecurityException e) {
             throw new TrustException("errorCreatingSymmKey", e);
-        } catch (ConversationException e) {
-            throw new TrustException("errorCreatingSymmKey", e);
         }
     }
 
@@ -114,14 +111,19 @@ public class TokenIssuerUtil {
             if (TokenIssuerUtil.ENCRYPTED_KEY.equals(config.proofKeyType)) {
                 WSSecEncryptedKey encrKeyBuilder = new WSSecEncryptedKey();
                 Crypto crypto;
-                if (config.cryptoElement != null) { // crypto props defined as elements
-                    crypto = CryptoFactory.getInstance(TrustUtil.toProperties(config.cryptoElement),
-                                                       data.getInMessageContext().
-                                                               getAxisService().getClassLoader());
-                } else { // crypto props defined in a properties file
-                    crypto = CryptoFactory.getInstance(config.cryptoPropertiesFile,
-                                                       data.getInMessageContext().
-                                                               getAxisService().getClassLoader());
+
+                try {
+                    if (config.cryptoElement != null) { // crypto props defined as elements
+                        crypto = CryptoFactory.getInstance(TrustUtil.toProperties(config.cryptoElement),
+                                data.getInMessageContext().
+                                        getAxisService().getClassLoader(), null);
+                    } else { // crypto props defined in a properties file
+                        crypto = CryptoFactory.getInstance(config.cryptoPropertiesFile,
+                                data.getInMessageContext().
+                                        getAxisService().getClassLoader());
+                    }
+                } catch (WSSecurityException e) {
+                    throw new TrustException("Error occurred while extracting the crypto.", e);
                 }
 
                 encrKeyBuilder.setKeyIdentifierType(WSConstants.THUMBPRINT_IDENTIFIER);

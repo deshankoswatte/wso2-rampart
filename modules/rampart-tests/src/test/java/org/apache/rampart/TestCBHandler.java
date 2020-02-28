@@ -16,7 +16,7 @@
 
 package org.apache.rampart;
 
-import org.apache.ws.security.WSPasswordCallback;
+import org.apache.wss4j.common.ext.WSPasswordCallback;
 
 import javax.security.auth.callback.Callback;
 import javax.security.auth.callback.CallbackHandler;
@@ -107,7 +107,7 @@ public class TestCBHandler implements CallbackHandler {
 
                 if (pc.getUsage() == WSPasswordCallback.USERNAME_TOKEN_UNKNOWN) {
 
-                    if(pc.getIdentifer().equals("Ron") && pc.getPassword().equals("noR")) {
+                    if(pc.getIdentifier().equals("Ron") && pc.getPassword().equals("noR")) {
 
                         return;
 
@@ -141,15 +141,15 @@ public class TestCBHandler implements CallbackHandler {
 
                     pc.setKey(key);
 
-                } else if(pc.getIdentifer().equals("alice")) {
+                } else if(pc.getIdentifier().equals("alice")) {
 
                     pc.setPassword("password");
 
-                } else if(pc.getIdentifer().equals("bob")) {
+                } else if(pc.getIdentifier().equals("bob")) {
 
                     pc.setPassword("password");
 
-                } else if(pc.getIdentifer().equals("Ron")) {
+                } else if(pc.getIdentifier().equals("Ron")) {
 
                     pc.setPassword("noR");
 

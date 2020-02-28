@@ -25,15 +25,16 @@ import org.apache.rahas.Token;
 import org.apache.rahas.TokenIssuer;
 import org.apache.rahas.TrustException;
 import org.apache.rahas.TrustUtil;
-import org.apache.ws.security.conversation.ConversationConstants;
-import org.apache.ws.security.conversation.ConversationException;
-import org.apache.ws.security.message.token.SecurityContextToken;
-import org.apache.ws.security.util.XmlSchemaDateFormat;
+import org.apache.wss4j.common.derivedKey.ConversationConstants;
+import org.apache.wss4j.common.ext.WSSecurityException;
+import org.apache.wss4j.dom.message.token.SecurityContextToken;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 
 import java.text.DateFormat;
+import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.TimeZone;
 
 public class SCTIssuer implements TokenIssuer {
 
@@ -157,13 +158,15 @@ public class SCTIssuer implements TokenIssuer {
             expirationTime.setTime(creationTime.getTime() + config.ttl);
 
             // Use GMT time in milliseconds
-            DateFormat zulu = new XmlSchemaDateFormat();
+            TimeZone timeZone = TimeZone.getTimeZone("UTC");
+            DateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'");
+            dateFormat.setTimeZone(timeZone);
 
             // Add the Lifetime element
             TrustUtil.createLifetimeElement(wstVersion,
                                             rstrElem,
-                                            zulu.format(creationTime),
-                                            zulu.format(expirationTime));
+                                            dateFormat.format(creationTime),
+                                            dateFormat.format(expirationTime));
 
             // Store the tokens
             Token sctToken = new Token(sct.getIdentifier(),
@@ -193,7 +196,7 @@ public class SCTIssuer implements TokenIssuer {
             sctToken.setState(Token.ISSUED);
             TrustUtil.getTokenStore(data.getInMessageContext()).add(sctToken);
             return env;
-        } catch (ConversationException e) {
+        } catch (WSSecurityException e) {
             throw new TrustException(e.getMessage(), e);
         }
     }
@@ -220,7 +223,7 @@ public class SCTIssuer implements TokenIssuer {
         this.configParamName = configParamName;
     }
 
-    private int getWSCVersion(String tokenTypeValue) throws ConversationException {
+    private int getWSCVersion(String tokenTypeValue) throws WSSecurityException {
 
         if (tokenTypeValue == null) {
             return ConversationConstants.DEFAULT_VERSION;
@@ -231,7 +234,7 @@ public class SCTIssuer implements TokenIssuer {
         } else if (tokenTypeValue.startsWith(ConversationConstants.WSC_NS_05_12)) {
             return ConversationConstants.getWSTVersion(ConversationConstants.WSC_NS_05_12);
         } else {
-            throw new ConversationException("unsupportedSecConvVersion");
+            throw new WSSecurityException(WSSecurityException.ErrorCode.FAILURE, "unsupportedSecConvVersion");
         }
     }
 }

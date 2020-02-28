@@ -23,25 +23,20 @@ import org.apache.axiom.om.impl.builder.StAXOMBuilder;
 import org.apache.axiom.om.impl.dom.DOOMAbstractFactory;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.apache.ws.security.WSConstants;
-import org.apache.ws.security.util.XmlSchemaDateFormat;
+import org.apache.wss4j.dom.WSConstants;
 
+import javax.xml.bind.DatatypeConverter;
 import javax.xml.namespace.QName;
 import javax.xml.stream.XMLInputFactory;
 import javax.xml.stream.XMLStreamException;
 import javax.xml.stream.XMLStreamReader;
 
-import java.io.ByteArrayInputStream;
 import java.io.Externalizable;
 import java.io.IOException;
-import java.io.InputStream;
 import java.io.ObjectInput;
 import java.io.ObjectOutput;
 import java.io.Reader;
 import java.io.StringReader;
-import java.io.UnsupportedEncodingException;
-import java.text.DateFormat;
-import java.text.ParseException;
 import java.util.Date;
 import java.util.Properties;
 
@@ -171,17 +166,14 @@ public class Token implements Externalizable {
     private void processLifeTime(OMElement lifetimeElem)
         throws TrustException {
         try {
-            DateFormat zulu = new XmlSchemaDateFormat();
             OMElement createdElem =
                 lifetimeElem.getFirstChildWithName(new QName(WSConstants.WSU_NS, WSConstants.CREATED_LN));
-            this.created = zulu.parse(createdElem.getText());
+            this.created = DatatypeConverter.parseDateTime(createdElem.getText()).getTime();
 
             OMElement expiresElem =
                 lifetimeElem.getFirstChildWithName(new QName(WSConstants.WSU_NS, WSConstants.EXPIRES_LN));
-            this.expires = zulu.parse(expiresElem.getText());
+            this.expires = DatatypeConverter.parseDateTime(expiresElem.getText()).getTime();
         } catch (OMException e) {
-            throw new TrustException("lifeTimeProcessingError", new String[]{lifetimeElem.toString()}, e);
-        } catch (ParseException e) {
             throw new TrustException("lifeTimeProcessingError", new String[]{lifetimeElem.toString()}, e);
         }
     }

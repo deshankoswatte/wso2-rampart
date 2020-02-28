@@ -16,6 +16,7 @@
 
 package org.apache.rahas.impl;
 
+import net.shibboleth.utilities.java.support.codec.Base64Support;
 import org.apache.axiom.om.OMElement;
 import org.apache.axiom.om.OMNode;
 import org.apache.axiom.om.util.AXIOMUtil;
@@ -38,14 +39,13 @@ import org.apache.rahas.impl.util.SAML2Utils;
 import org.apache.rahas.impl.util.SAMLAttributeCallback;
 import org.apache.rahas.impl.util.SAMLCallbackHandler;
 import org.apache.rahas.impl.util.SignKeyHolder;
-import org.apache.ws.security.WSConstants;
-import org.apache.ws.security.WSSecurityException;
-import org.apache.ws.security.components.crypto.Crypto;
-import org.apache.ws.security.components.crypto.CryptoFactory;
-import org.apache.ws.security.message.WSSecEncryptedKey;
-import org.apache.ws.security.util.Base64;
-import org.apache.ws.security.util.Loader;
-import org.apache.ws.security.util.XmlSchemaDateFormat;
+import org.apache.wss4j.common.crypto.CryptoType;
+import org.apache.wss4j.dom.WSConstants;
+import org.apache.wss4j.common.ext.WSSecurityException;
+import org.apache.wss4j.common.crypto.Crypto;
+import org.apache.wss4j.common.crypto.CryptoFactory;
+import org.apache.wss4j.dom.message.WSSecEncryptedKey;
+import org.apache.wss4j.common.util.Loader;
 import org.apache.xml.security.c14n.Canonicalizer;
 import org.apache.xml.security.utils.EncryptionConstants;
 import org.joda.time.DateTime;
@@ -84,7 +84,7 @@ import org.opensaml.core.xml.io.MarshallerFactory;
 import org.opensaml.core.xml.io.MarshallingException;
 import org.opensaml.core.xml.io.Unmarshaller;
 import org.opensaml.core.xml.io.UnmarshallerFactory;
-import org.opensaml.core.xml.io.UnmarshallingException;;
+import org.opensaml.core.xml.io.UnmarshallingException;
 import org.opensaml.xmlsec.signature.KeyInfo;
 import org.opensaml.xmlsec.signature.Signature;
 import org.opensaml.xmlsec.signature.X509Data;
@@ -110,10 +110,12 @@ import java.security.PrivateKey;
 import java.security.cert.CertificateEncodingException;
 import java.security.cert.X509Certificate;
 import java.text.DateFormat;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
+import java.util.TimeZone;
 
 public class SAML2TokenIssuer implements TokenIssuer {
 
@@ -189,7 +191,7 @@ public class SAML2TokenIssuer implements TokenIssuer {
                 // elements
                 crypto = CryptoFactory.getInstance(TrustUtil
                         .toProperties(config.cryptoElement), inMsgCtx
-                        .getAxisService().getClassLoader());
+                        .getAxisService().getClassLoader(), null);
             } else { // crypto props defined in a properties file
                 crypto = CryptoFactory.getInstance(config.cryptoPropertiesFile,
                         inMsgCtx.getAxisService().getClassLoader());
@@ -316,11 +318,13 @@ public class SAML2TokenIssuer implements TokenIssuer {
             }
 
             // Use GMT time in milliseconds
-            DateFormat zulu = new XmlSchemaDateFormat();
+            TimeZone timeZone = TimeZone.getTimeZone("UTC");
+            DateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'");
+            dateFormat.setTimeZone(timeZone);
 
             // Add the Lifetime element
-            TrustUtil.createLifetimeElement(wstVersion, rstrElem, zulu
-                    .format(creationTime), zulu.format(expirationTime));
+            TrustUtil.createLifetimeElement(wstVersion, rstrElem, dateFormat
+                    .format(creationTime), dateFormat.format(expirationTime));
 
             // Create the RequestedSecurityToken element and add the SAML token
             // to it
@@ -438,7 +442,7 @@ public class SAML2TokenIssuer implements TokenIssuer {
                 // set keysize
                 int keysize = data.getKeysize();
                 keysize = (keysize != -1) ? keysize : config.keySize;
-                encrKeyBuilder.setKeySize(keysize);
+                encrKeyBuilder.setsetKeySize(keysize);
 
                 encrKeyBuilder.setEphemeralKey(TokenIssuerUtil.getSharedSecret(
                         data, config.keyComputation, keysize));
@@ -501,7 +505,7 @@ public class SAML2TokenIssuer implements TokenIssuer {
 
                 byte[] clientCertBytes = clientCert.getEncoded();
 
-                String base64Cert = Base64.encode(clientCertBytes);
+                String base64Cert = Base64Support.encode(clientCertBytes, Base64Support.UNCHUNKED);
 
                 Text base64CertText = doc.createTextNode(base64Cert);
 
@@ -701,8 +705,10 @@ public class SAML2TokenIssuer implements TokenIssuer {
         SignKeyHolder signKeyHolder = new SignKeyHolder();
 
         try {
+            CryptoType cryptoType = new CryptoType(CryptoType.TYPE.ALIAS);
+            cryptoType.setAlias(config.issuerKeyAlias);
             X509Certificate[] issuerCerts = crypto
-                    .getCertificates(config.issuerKeyAlias);
+                    .getX509Certificates(cryptoType);
 
             String sigAlgo = SAMLUtils.getSignatureAlgorithm(config, issuerCerts);
             String digestAlgorithm = SAMLUtils.getDigestAlgorithm(config);

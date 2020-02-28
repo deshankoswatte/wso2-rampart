@@ -22,8 +22,8 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.rahas.impl.AbstractIssuerConfig;
 import org.apache.rahas.impl.SAMLTokenIssuerConfig;
-import org.apache.ws.security.WSConstants;
-import org.apache.ws.security.message.token.Reference;
+import org.apache.wss4j.dom.WSConstants;
+import org.apache.wss4j.common.token.Reference;
 
 import javax.xml.namespace.QName;
 import java.io.Serializable;

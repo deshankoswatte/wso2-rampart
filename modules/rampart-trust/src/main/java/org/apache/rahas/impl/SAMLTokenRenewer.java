@@ -9,8 +9,9 @@ import org.apache.rahas.RahasData;
 import org.apache.rahas.TokenRenewer;
 import org.apache.rahas.TrustException;
 import org.apache.rahas.TrustUtil;
-import org.apache.ws.security.components.crypto.Crypto;
-import org.apache.ws.security.components.crypto.CryptoFactory;
+import org.apache.wss4j.common.crypto.Crypto;
+import org.apache.wss4j.common.crypto.CryptoFactory;
+import org.apache.wss4j.common.ext.WSSecurityException;
 
 public abstract class SAMLTokenRenewer implements TokenRenewer {
     
@@ -28,17 +29,23 @@ public abstract class SAMLTokenRenewer implements TokenRenewer {
      * @param config
      * @return
      */
-    protected Crypto getCrypto(MessageContext inMsgCtx, SAMLTokenIssuerConfig config){
+    protected Crypto getCrypto(MessageContext inMsgCtx, SAMLTokenIssuerConfig config) throws TrustException {
+
         Crypto crypto;
-        if (config.cryptoElement != null) {
-            // Crypto props defined as elements.
-            crypto = CryptoFactory.getInstance(TrustUtil
-                    .toProperties(config.cryptoElement), inMsgCtx
-                    .getAxisService().getClassLoader());
-        } else {
-            // Crypto props defined in a properties file.
-            crypto = CryptoFactory.getInstance(config.cryptoPropertiesFile,
-                    inMsgCtx.getAxisService().getClassLoader());
+
+        try {
+            if (config.cryptoElement != null) {
+                // Crypto props defined as elements.
+                crypto = CryptoFactory.getInstance(TrustUtil
+                        .toProperties(config.cryptoElement), inMsgCtx
+                        .getAxisService().getClassLoader(), null);
+            } else {
+                // Crypto props defined in a properties file.
+                crypto = CryptoFactory.getInstance(config.cryptoPropertiesFile,
+                        inMsgCtx.getAxisService().getClassLoader());
+            }
+        } catch (WSSecurityException e) {
+            throw new TrustException("Error occurred while extracting the crypto.", e);
         }
         return crypto;
     }

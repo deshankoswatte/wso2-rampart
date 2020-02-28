@@ -11,9 +11,9 @@ import org.apache.commons.logging.LogFactory;
 import org.apache.rahas.*;
 import org.apache.rahas.impl.util.SAMLUtils;
 import org.apache.rahas.impl.util.SignKeyHolder;
-import org.apache.ws.security.WSSecurityException;
-import org.apache.ws.security.components.crypto.Crypto;
-import org.apache.ws.security.util.XmlSchemaDateFormat;
+import org.apache.wss4j.common.crypto.CryptoType;
+import org.apache.wss4j.common.ext.WSSecurityException;
+import org.apache.wss4j.common.crypto.Crypto;
 import org.apache.xml.security.c14n.Canonicalizer;
 import org.joda.time.DateTime;
 import org.opensaml.core.config.InitializationException;
@@ -49,9 +49,11 @@ import java.io.IOException;
 import java.security.PrivateKey;
 import java.security.cert.X509Certificate;
 import java.text.DateFormat;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+import java.util.TimeZone;
 
 public class SAML2TokenRenewer extends SAMLTokenRenewer implements TokenRenewer {
 
@@ -78,10 +80,12 @@ public class SAML2TokenRenewer extends SAMLTokenRenewer implements TokenRenewer 
         expirationTime.setTime(creationTime.getTime() + config.ttl);
 
         // Use GMT time in millisecondscreationTime
-        DateFormat zulu = new XmlSchemaDateFormat();
+        TimeZone timeZone = TimeZone.getTimeZone("UTC");
+        DateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'");
+        dateFormat.setTimeZone(timeZone);
         // Add the Lifetime element
-        TrustUtil.createLifetimeElement(wstVersion, rstrElem, zulu
-                .format(creationTime), zulu.format(expirationTime));
+        TrustUtil.createLifetimeElement(wstVersion, rstrElem, dateFormat
+                .format(creationTime), dateFormat.format(expirationTime));
         // Obtain the token
         Token tk = tkStorage.getToken(data.getTokenId());
         OMElement assertionOMElement = tk.getToken();
@@ -149,8 +153,10 @@ public class SAML2TokenRenewer extends SAMLTokenRenewer implements TokenRenewer 
     private SignKeyHolder createSignKeyHolder(SAMLTokenIssuerConfig config, Crypto crypto) throws TrustException {
         SignKeyHolder signKeyHolder = new SignKeyHolder();
         try {
+            CryptoType cryptoType = new CryptoType(CryptoType.TYPE.ALIAS);
+            cryptoType.setAlias(config.issuerKeyAlias);
             X509Certificate[] issuerCerts = crypto
-                    .getCertificates(config.issuerKeyAlias);
+                    .getX509Certificates(cryptoType);
             String sigAlgo = SAMLUtils.getSignatureAlgorithm(config, issuerCerts);
             String digestAlgorithm = SAMLUtils.getDigestAlgorithm(config);
             java.security.Key issuerPK = crypto.getPrivateKey(
